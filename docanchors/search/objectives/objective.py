@@ -12,9 +12,6 @@ class Objective(Component):
         self.pre_factor = pre_factor
         self.name = self.__class__.__name__
 
-    def update(self):
-        pass
-
     def value(self, candidate: np.ndarray) -> float:
         raise NotImplementedError
 
@@ -50,10 +47,6 @@ class Join(Objective):
     def __init__(self, objectives: List[Objective]):
         super(Join, self).__init__()
         self.objectives = objectives
-
-    def update(self):
-        for objective in self.objectives:
-            objective.update()
 
     def value(self, candidate: np.ndarray) -> float:
         return self.pre_factor * sum((objective(candidate)

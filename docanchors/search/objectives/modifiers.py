@@ -24,9 +24,6 @@ class Bound(Objective):
         self.lower_bound, self.upper_bound = lower_bound, upper_bound
         self._name = objective.name
 
-    def update(self):
-        self._objective.update()
-
     def value(self, candidate: np.ndarray) -> float:
         _value = self._objective(candidate)
         return min(max(_value, self.lower_bound), self.upper_bound)
@@ -64,9 +61,6 @@ class Invert(Objective):
         self._objective = objective
         self._epsilon = epsilon
         self._name = objective.name
-
-    def update(self):
-        self._objective.update()
 
     def value(self, candidate: np.ndarray) -> float:
         return 1 / (self._objective(candidate) + self._epsilon)
