@@ -89,8 +89,6 @@ class Generator(Component):
             if threshold is not None:
                 raise ValueError("If objective is not given, threshold must not be set.")
             threshold = 1.0
-        else:
-            objective.update()
 
         if threshold is None:
             threshold = 0.0

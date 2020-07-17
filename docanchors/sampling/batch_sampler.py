@@ -35,7 +35,7 @@ class BatchSampler(Sampler):
 
     def __init__(self,
                  instance: np.ndarray,
-                 get_predict_fn: Callable[[], Callable[[np.ndarray], int]],
+                 get_predict_fn: Callable[[], Callable[[np.ndarray], np.ndarray]],
                  sample_queue: Queue,
                  batch_size: int = 256,
                  mask: Mask = RandomUniformMask(),
@@ -81,7 +81,7 @@ class BatchSampler(Sampler):
 
         while True:
             if self.single_queue.full():
-                self.logger.warn("Sample queue is full (overflow).")
+                self.logger.info("Sample queue is full (overflow).")
                 time.sleep(0.1)
                 continue
 
@@ -105,8 +105,6 @@ class BatchSampler(Sampler):
             if abs(deviation) > 0.25 and 0.10 < self.mask.perturbation_rate < 0.90:
                 self.logger.debug(f"Warmup, deviation {deviation}")
                 continue
-
-            self.mask.learn(mask=batch_mask, is_target_sample=is_target_sample.astype(int))
 
             if self.single_queue.empty():
                 self.logger.warn("Sample queue is empty (underflow).")

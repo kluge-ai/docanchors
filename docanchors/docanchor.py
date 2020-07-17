@@ -41,7 +41,7 @@ class DocumentAnchor:
         self.sample_queue = sample_queue
         self.objective = objective
 
-        self.num_seed_candidates = 40
+        self.num_seed_candidates = 8
         self.num_candidates = 8
 
         self.max_steps = 500
@@ -51,7 +51,7 @@ class DocumentAnchor:
         self.min_delta = 0.05
         self.threshold_prefactor = 1.0
         self.patience = 5
-        self.match_condition = 0.80
+        self.match_condition = 0.90
 
         self.logger = logging.getLogger("DocumentAnchor")
         self.buffer = deque([], maxlen=10000)
@@ -99,7 +99,6 @@ class DocumentAnchor:
         candidates = self.generator.generate_candidates(len(instance),
                                                         num_candidates=self.num_seed_candidates)
 
-        self.objective.update()
         objective_values = [self.objective(candidate) for candidate in candidates]
         threshold = self.threshold_prefactor * np.max(objective_values)
 
@@ -152,7 +151,6 @@ class DocumentAnchor:
                 candidates.extend(random.sample(new_candidates, self.random_candidates))
 
             self.logger.debug("Calculate objective function for all candidates")
-            self.objective.update()
             objective_values = [self.objective(candidate) for candidate in candidates]
             best_objective_values = [self.objective(candidate) for candidate in best_candidates]
 

@@ -6,7 +6,7 @@ class Sampler:
     """Abstract base class for samplers."""
 
     def __init__(self):
-        self.logger = logging.getLogger(self.__name__)
+        self.logger = logging.getLogger(self.__class__.__name__)
 
     def run(self):
         raise NotImplementedError
