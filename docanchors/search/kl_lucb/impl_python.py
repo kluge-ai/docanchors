@@ -5,6 +5,9 @@ EPSILON = 1e-15
 
 def kl(observed_mean: float, mean: float) -> float:
     """
+    Kullback-Leibler divergence for Bernoulli distributions.
+
+    As implemented in [1].
 
     Parameters
     ----------
@@ -13,6 +16,10 @@ def kl(observed_mean: float, mean: float) -> float:
 
     Returns
     -------
+
+    References
+    ----------
+    [1] Lilian Besson: https://github.com/Naereen/Kullback-Leibler-divergences-and-kl-UCB-indexes/blob/master/src/kullback_leibler.py#L49
 
     """
     p = min(max(observed_mean, EPSILON), 1 - EPSILON)

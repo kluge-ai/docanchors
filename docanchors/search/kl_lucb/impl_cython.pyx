@@ -1,6 +1,6 @@
 from libc.math cimport log
 
-cdef float EPSILON = 1e-6
+cdef float EPSILON = 1e-15
 
 
 def kl(float observed_mean,
