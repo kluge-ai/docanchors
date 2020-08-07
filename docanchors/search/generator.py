@@ -105,6 +105,9 @@ class Generator(Component):
             children += _fit_children[:num_children]
         return children
 
+    def mutate_candidate(self, candidate: np.ndarray) -> np.ndarray:
+        return self._generate_from_candidate(candidate, num_children=1)[0]
+
     def _generate_from_candidate(self, candidate: np.ndarray, num_children: int) -> List[np.ndarray]:
         strategies = np.random.choice(self.strategies, size=num_children, replace=True, p=self.weights)
         return [strategy(candidate) for strategy in strategies]

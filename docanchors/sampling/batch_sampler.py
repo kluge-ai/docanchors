@@ -101,9 +101,10 @@ class BatchSampler(Sampler):
             self.mask.perturbation_rate += 0.01 * deviation + 0.0001 * (deviation - previous)
             self.mask.perturbation_rate = max(0.10, min(self.mask.perturbation_rate, 0.90))
             previous = deviation
+            print(deviation)
 
             if abs(deviation) > 0.25 and 0.10 < self.mask.perturbation_rate < 0.90:
-                self.logger.debug(f"Warmup, deviation {deviation}")
+                self.logger.debug(f"Warmup, deviation {deviation}, {self.mask.perturbation_rate:0.4f}")
                 continue
 
             if self.single_queue.empty():
