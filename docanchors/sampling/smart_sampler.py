@@ -35,8 +35,8 @@ class SmartSampler(Sampler):
                  sample_queue: Queue,
                  batch_size: int = 256,
                  target: Union[None, int] = None,
-                 min_tokens: int = 1,
-                 max_tokens: Union[None, int] = None,
+                 min_radius: int = 0,
+                 max_radius: Union[None, int] = None,
                  replacement: Replacement = UnknownValue(),
                  restrict_to_known: bool = True,
                  left_align: bool = True,
@@ -62,53 +62,37 @@ class SmartSampler(Sampler):
         self.left_align = left_align
         self.max_samples = max_samples
 
-        self.min_tokens = min_tokens
-        self.max_tokens = max_tokens or len(self.instance)
+        self.min_radius = min_radius
+        self.max_radius = max_radius or int(len(self.instance) / 2) - 1
 
         self._rng = np.random.default_rng()
 
     def run(self):
         self.predict_fn = self.get_predict_fn()
 
-        batch_shape = (self.model_batch_size, len(self.instance))
-        batch_base = np.repeat(self.instance.reshape(1, -1), self.model_batch_size, axis=0)
-        assert batch_base.shape == batch_shape
-
         if self.restrict_to_known:
             size = self.final_padding_start
         else:
             size = len(self.instance)
 
-        windows = []
-        for window_size in range(self.min_tokens, self.max_tokens):
-            window = np.zeros(shape=(size, len(self.instance)), dtype=bool)
-            for i, row in enumerate(window):
-                if i + window_size > size:
-                    break
-                row[i:i + window_size] = True
-            windows.append(window)
-
-        all_batches = np.concatenate(windows)
-
+        all_batches = self.create_batches(size)
         self.logger.info(f"Generated {all_batches.shape[0]} samples.")
 
-        if self.max_samples is not None:
-            if all_batches.shape[0] > self.max_samples:
-                all_batches = self._rng.choice(all_batches, size=self.max_samples,
-                                               replace=False, axis=0)
+        batches = self.reduce_batches(all_batches)
+        self.logger.info(f"Reduced to {batches.shape[0]} samples.")
 
-        self._rng.shuffle(all_batches, axis=0)
+        num_model_calls, remainder = divmod(batches.shape[0], self.model_batch_size)
+        if remainder:
+            num_model_calls += 1
 
-        self.logger.info(f"Truncated to {all_batches.shape[0]} samples.")
-        model_calls = int(all_batches.shape[0] / self.model_batch_size) + 1
+        batch_shape = (self.model_batch_size, len(self.instance))
+        batch_base = np.repeat(self.instance.reshape(1, -1), self.model_batch_size, axis=0)
+        assert batch_base.shape == batch_shape
 
-        for batch_count in range(model_calls):
-            self.logger.info(f"Batch {batch_count} of {model_calls}")
+        for batch_count in range(num_model_calls):
+            self.logger.info(f"Batch {batch_count + 1} of {num_model_calls}")
             batch_start = batch_count * self.model_batch_size
-            batch_mask = all_batches[batch_start:batch_start + self.model_batch_size, :]
-
-            if batch_mask.shape[0] == 0:
-                break
+            batch_mask = batches[batch_start:batch_start + self.model_batch_size, :]
 
             if batch_mask.shape[0] < batch_base.shape[0]:
                 batch_base = batch_base[:batch_mask.shape[0], :]
@@ -123,4 +107,23 @@ class SmartSampler(Sampler):
 
             for sample, label in zip(batch_mask, is_target_sample.astype(int)):
                 self.single_queue.put((sample, label), block=True)
-                # print(label, sample[:5])
+
+    def reduce_batches(self, batches: np.ndarray) -> np.ndarray:
+        if self.max_samples is not None:
+            if batches.shape[0] > self.max_samples:
+                batches = self._rng.choice(batches, size=self.max_samples,
+                                           replace=False, axis=0)
+        self._rng.shuffle(batches, axis=0)
+        return batches
+
+    def create_batches(self, size: int) -> np.ndarray:
+        windows = []
+        for radius in range(self.min_radius, self.max_radius):
+            window_size = 2 * radius + 1
+            window = np.zeros(shape=(size + window_size, len(self.instance)), dtype=bool)
+            for i, row in enumerate(window):
+                row[i - radius:i + radius] = True
+
+            windows.append(window)
+        all_batches = np.concatenate(windows)
+        return all_batches
