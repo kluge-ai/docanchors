@@ -13,7 +13,7 @@ from .util.util import get_final_padding_length
 # TODO: Logging infrastructure
 
 EPSILON = 1e-6
-MAXLOOP = 5
+MAXLOOP = 50
 
 
 class DocumentAnchor:
@@ -44,7 +44,7 @@ class DocumentAnchor:
         self.objective = objective
         self.search = search
 
-        self.match_condition = 0.80
+        self.match_condition = 1.00
 
         self.logger = logging.getLogger("DocumentAnchor")
         self.buffer = deque([], maxlen=10000)
@@ -110,7 +110,7 @@ class DocumentAnchor:
             _sample = sample[:len(candidate)]
             match = np.sum(_sample * candidate) / min(_sum_candidate, np.sum(_sample))
             if match >= self.match_condition - EPSILON:
-                return label
+                return label #* match
         else:
             # self.logger.warning(f"Candidate did not match for {MAXLOOP} samples. Low coverage.")
             return 0
