@@ -49,11 +49,28 @@ class Shift(Strategy):
     Direction is chosen randomly.
     """
 
+    def __init__(self):
+        super(Shift, self).__init__()
+        self._shift_left = ShiftLeft()
+        self._shift_right = ShiftRight()
+
     def __call__(self, candidate: np.ndarray) -> np.ndarray:
         if self._random.random() < 0.5:
-            return np.append(candidate[1:], False)
+            return self._shift_left(candidate)
         else:
-            return np.concatenate(([False], candidate[:-1]))
+            return self._shift_right(candidate)
+
+
+class ShiftLeft(Strategy):
+
+    def __call__(self, candidate: np.ndarray) -> np.ndarray:
+        return np.append(candidate[1:], False)
+
+
+class ShiftRight(Strategy):
+
+    def __call__(self, candidate: np.ndarray) -> np.ndarray:
+        return np.concatenate(([False], candidate[:-1]))
 
 
 class Pass(Strategy):

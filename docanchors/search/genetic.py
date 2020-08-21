@@ -63,7 +63,7 @@ class GeneticSearch:
             if np.min(objective_values) < self.min_threshold:
                 break
 
-        print(best_candidates)
+        # print(best_candidates)
 
         return best_candidates[0]
 
