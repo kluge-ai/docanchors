@@ -31,7 +31,7 @@ class SmartSampler(Sampler):
 
     def __init__(self,
                  instance: np.ndarray,
-                 get_predict_fn: Callable[[], Callable[[np.ndarray], np.ndarray]],
+                 get_predict_fn: Callable[[float], Callable[[np.ndarray], np.ndarray]],
                  sample_queue: Queue,
                  batch_size: int = 256,
                  target: Union[None, int] = None,
@@ -40,14 +40,16 @@ class SmartSampler(Sampler):
                  replacement: Replacement = UnknownValue(),
                  restrict_to_known: bool = True,
                  left_align: bool = True,
-                 max_samples: Union[None, int] = None):
+                 max_samples: Union[None, int] = None,
+                 threshold: float = 0.8):
         super(SmartSampler, self).__init__()
         self.instance = instance
 
         self.predict_fn = None
         self.get_predict_fn = get_predict_fn
 
-        predict_fn = self.get_predict_fn()
+        self.threshold = threshold
+        predict_fn = self.get_predict_fn(self.threshold)
         self.target = target or predict_fn(instance.reshape(1, -1))[0]
         del predict_fn
 
@@ -68,7 +70,7 @@ class SmartSampler(Sampler):
         self._rng = np.random.default_rng()
 
     def run(self):
-        self.predict_fn = self.get_predict_fn()
+        self.predict_fn = self.get_predict_fn(self.threshold)
 
         if self.restrict_to_known:
             size = self.final_padding_start

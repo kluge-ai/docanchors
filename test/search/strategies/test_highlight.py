@@ -1,12 +1,15 @@
 import numpy as np
 
-from docanchors.search.strategies.highlight import Grow, Shrink, Shift, Pass, Erase
+from docanchors.search.strategies.highlight import Grow, Shrink, Shift, Pass, Erase, ShiftLeft, ShiftRight
+
+
+ALL_STRATEGIES = [Grow, Shrink, Pass, Erase, Shift, ShiftLeft, ShiftRight]
 
 
 def test_that_empty_candidate_remains_unaltered(subtests):
     candidate = np.zeros(shape=(512,), dtype=bool)
 
-    for strategy in [Grow, Shrink, Shift, Pass, Erase]:
+    for strategy in ALL_STRATEGIES:
         with subtests.test(msg=f"{strategy.__name__} keeps empty candidate unaltered",
                            strategy=strategy):
             assert np.array_equal(strategy()(candidate), candidate)
@@ -15,7 +18,7 @@ def test_that_empty_candidate_remains_unaltered(subtests):
 def test_that_children_are_new_objects(subtests):
     candidate = np.random.randint(0, 2, size=256, dtype=bool)
 
-    for strategy in [Grow, Shrink, Shift, Pass, Erase]:
+    for strategy in ALL_STRATEGIES:
         with subtests.test(msg=f"{strategy.__name__} returns new object as child",
                            strategy=strategy):
             assert strategy()(candidate) is not candidate
@@ -91,7 +94,26 @@ def test_grow_multiple_highlights_everywhere():
                           np.array([True, True, True, False, True, True, True, False, True]))
 
 
-def test_shift_left(mocker):
+def test_grow_everything_is_highlighted():
+    candidate = np.ones(10, dtype=bool)
+    assert np.array_equal(Grow()(candidate), candidate)
+
+
+def test_shift_left():
+    candidate = np.array([False, False, True, True, True])
+    shift = ShiftLeft()
+
+    assert np.array_equal(shift(candidate), np.array([False, True, True, True, False]))
+
+
+def test_shift_right():
+    candidate = np.array([False, True, True, True, False])
+    shift = ShiftRight()
+
+    assert np.array_equal(shift(candidate), np.array([False, False, True, True, True]))
+
+
+def test_shift_shifts_left(mocker):
     candidate = np.array([False, False, True, True, True])
     shift = Shift()
 
@@ -101,7 +123,7 @@ def test_shift_left(mocker):
     assert np.array_equal(shift(candidate), np.array([False, True, True, True, False]))
 
 
-def test_shift_right(mocker):
+def test_shift_shifts_right(mocker):
     candidate = np.array([False, True, True, True, False])
     shift = Shift()
 
