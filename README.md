@@ -53,12 +53,10 @@ if __name__ == "__main__":
 
 For the full script, see [example.py](/example.py).
 
-## Notes on design considerations
-
-- [Creating a human-friendly interface for an XAI algorithm](https://www.kluge.ai/post/202007-human-friendly-interface/)
-
 ## Publications
 - Kilian Kluge, Regina Eckhardt: *Explaining Suspected Phishing Attempts with Document Anchors.* [2020 ICML Workshop on Human Interpretability in Machine Learning](https://sites.google.com/view/whi2020/home), 2020
+- Kilian Kluge, Regina Eckhardt: *Explaining the Suspicion: Design of an XAI-Based User-Focused Anti-Phishing Measure.* [16. Internationale Tagung Wirtschaftsinformatik](https://wi2021.de/), 2021
+
 
 ## References
 - Kaufmann, E. and Kalyanakrishnan, S.: Information Complexity in Bandit Subset Selection. In: *Proceedings of
