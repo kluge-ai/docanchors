@@ -13,11 +13,9 @@ from .util.util import get_final_padding_length
 # TODO: Logging infrastructure
 
 EPSILON = 1e-6
-MAXLOOP = 50
 
 
 class DocumentAnchor:
-    # TODO: Document all attributes
     """
 
     Parameters
@@ -28,9 +26,15 @@ class DocumentAnchor:
         Anchor candidate generator.
     objective : Objective
         Evaluation objective.
+    search : LocalBeamSearch, GenericSearch
+        Search component.
 
     Attributes
     ----------
+    match_condition : float
+        If overlap >= match_condition, consider an anchor to match a sample.
+    max_num_of_loops : int
+        Maximum number of samples to consider when searching for a match.
 
     """
 
@@ -45,6 +49,7 @@ class DocumentAnchor:
         self.search = search
 
         self.match_condition = 1.00
+        self.max_num_of_loops = 50
 
         self.logger = logging.getLogger("DocumentAnchor")
         self.buffer = deque([], maxlen=10000)
@@ -94,8 +99,8 @@ class DocumentAnchor:
         if _sum_candidate == 0:
             return 0
 
-        for _ in range(MAXLOOP):
-            if self.sample_queue.empty() and len(self.buffer) > MAXLOOP:
+        for _ in range(self.max_num_of_loops):
+            if self.sample_queue.empty() and len(self.buffer) > self.max_num_of_loops:
                 try:
                     sample, label = self.buffer[0]
                 except IndexError:
@@ -110,7 +115,7 @@ class DocumentAnchor:
             _sample = sample[:len(candidate)]
             match = np.sum(_sample * candidate) / min(_sum_candidate, np.sum(_sample))
             if match >= self.match_condition - EPSILON:
-                return label #* match
+                return label
         else:
-            # self.logger.warning(f"Candidate did not match for {MAXLOOP} samples. Low coverage.")
+            self.logger.warning(f"Candidate did not match for {self.max_num_of_loops} samples. Low coverage.")
             return 0
