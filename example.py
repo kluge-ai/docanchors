@@ -4,6 +4,7 @@ import numpy as np
 
 from docanchors import DocumentAnchor
 from docanchors.sampling import BatchSampler, MultiprocessingSampler
+from docanchors.search import LocalBeamSearch
 from docanchors.search.generator import Generator
 from docanchors.search.objectives import AbsoluteCover, Coherence
 from docanchors.search.strategies.highlight import Grow, Shift
@@ -36,9 +37,14 @@ generator = Generator(strategies=[Grow(), Shift()])
 
 objective = Coherence() + 2.0 * AbsoluteCover(target=5)
 
+search = LocalBeamSearch(generator=generator,
+                         objective=objective,
+                         evaluate_fn=lambda x: 0)
+
 doc_anchor = DocumentAnchor(sample_queue=sample_queue,
                             generator=generator,
-                            objective=objective)
+                            objective=objective,
+                            search=search)
 
 if __name__ == "__main__":
     # Start sampler
@@ -51,4 +57,3 @@ if __name__ == "__main__":
     batch_sampler.terminate()
 
     print(anchor)
-

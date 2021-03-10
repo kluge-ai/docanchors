@@ -34,9 +34,14 @@ generator = Generator(strategies=[Grow(), Shift()])
 
 objective = Coherence() + 2.0 * AbsoluteCover(target=5)
 
+search = LocalBeamSearch(generator=generator,
+                         objective=objective,
+                         evaluate_fn=lambda x: 0)
+
 doc_anchor = DocumentAnchor(sample_queue=sample_queue,
                             generator=generator,
-                            objective=objective)
+                            objective=objective,
+                            search=search)
 
 if __name__ == "__main__":
     # Start sampler
